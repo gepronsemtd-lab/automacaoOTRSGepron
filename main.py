@@ -6,6 +6,9 @@ import unicodedata
 import json
 from io import BytesIO
 from datetime import datetime
+from zoneinfo import ZoneInfo
+
+LOCAL_TIMEZONE = ZoneInfo("America/Fortaleza")
 
 def executar_processamento_otrs():
     # 1. Configuração de Credenciais via Variáveis de Ambiente
@@ -13,7 +16,8 @@ def executar_processamento_otrs():
     passwd = os.getenv('OTRS_PASS')
 
     # 2. Cálculo Dinâmico para Início do Ano Atual
-    ano_atual = datetime.now().year
+    agora_local = datetime.now(LOCAL_TIMEZONE)
+    ano_atual = agora_local.year
     data_filtro = f"{ano_atual}-01-01"
     periodo_referencia = f"Jan/{ano_atual} até o presente"
 
@@ -130,7 +134,7 @@ def executar_processamento_otrs():
 
     meses = pd.period_range(
         start=f"{ano_atual}-01",
-        end=datetime.now().strftime("%Y-%m"),
+        end=agora_local.strftime("%Y-%m"),
         freq="M",
     )
 
@@ -150,7 +154,7 @@ def executar_processamento_otrs():
         return serie.astype(int).tolist()
 
     dashboard_data = {
-        "updated": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+        "updated": agora_local.strftime("%d/%m/%Y %H:%M:%S"),
         "period": periodo_referencia,
         "kpis": {
             "Total": total_tickets,
