@@ -2,9 +2,8 @@ __pycache__/
 *.py[cod]
 *.csv
 *.png
-*.html
-!dist/index.html
 .env
 venv/
 env/
 .DS_Store
+dist/
