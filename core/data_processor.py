@@ -15,6 +15,19 @@ def limpar_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     if 'datacriacao' not in df.columns:
         raise KeyError('A coluna datacriacao não foi encontrada no arquivo CSV.')
     df['datacriacao'] = pd.to_datetime(df['datacriacao'])
+
+    if 'estado' in df.columns:
+        mapa_estados = {
+            'closed successful': 'Fechado c/ Sucesso',
+            'closed unsuccessful': 'Fechado s/ Sucesso',
+            'new': 'Novo',
+            'open': 'Aberto',
+            'pending reminder': 'Lembrete Pendente',
+            'merged': 'Mesclado',
+            'removed': 'Removido'
+        }
+        df['estado'] = df['estado'].str.lower().map(lambda x: mapa_estados.get(x, str(x).title()))
+
     return df
 
 def preparar_dashboard_data(df, agora_local, ano_atual, periodo_referencia):

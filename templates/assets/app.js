@@ -7,6 +7,20 @@ const data = window.DASHBOARD_DATA;
 document.getElementById("update-info").innerText = `Sincronizado: ${data.updated}`;
 document.getElementById("period-info").innerText = data.period;
 
+// Funcionalidade de clique nas abas
+const tabButtons = document.querySelectorAll('.tab-button');
+tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        // Remove a cor azul de todas as abas
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        
+        // Adiciona a cor azul apenas na aba que foi clicada
+        button.classList.add('active');
+        
+        // Lógica a ser adicionada....
+    });
+});
+
 // Renderiza KPIs
 document.getElementById("kpi-container").innerHTML = data.kpis
     .map((item) => `
@@ -57,7 +71,7 @@ const commonOptions = {
 const horizontalOptions = {
     ...commonOptions,
     indexAxis: "y",
-    layout: { padding: { right: 40 } },
+    layout: { padding: { left: 60, right: 50 } },
     plugins: {
         ...commonOptions.plugins,
         datalabels: {
