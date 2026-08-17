@@ -71,9 +71,55 @@ const commonOptions = {
 const horizontalOptions = {
     ...commonOptions,
     indexAxis: "y",
-    layout: { padding: { left: 60, right: 50 } },
+    layout: { padding: { right: 40 } }, 
+    scales: {
+        x: {
+            ticks: { color: "#626a73", font: { family: "Inter" } },
+            grid: { color: "#e4e8ee" }
+        },
+        y: {
+            ticks: {
+                color: "#626a73",
+                font: { family: "Inter", size: 11 },
+                autoSkip: false,
+                callback: function(value) {
+                    const label = this.getLabelForValue(value) || '';
+                    
+                    // Se o texto for menor que 25 caracteres, não faz nada
+                    if (label.length <= 25) return label;
+                    
+                    // Se for maior, empilha as palavras de forma organizada
+                    const words = label.split(' ');
+                    const lines = [];
+                    let currentLine = '';
+                    
+                    words.forEach(word => {
+                        if ((currentLine + word).length > 25) {
+                            lines.push(currentLine.trim());
+                            currentLine = word + ' ';
+                        } else {
+                            currentLine += word + ' ';
+                        }
+                    });
+                    if (currentLine.trim() !== '') {
+                        lines.push(currentLine.trim());
+                    }
+                    
+                    return lines; 
+                }
+            },
+            grid: { display: false } 
+        }
+    },
     plugins: {
         ...commonOptions.plugins,
+        tooltip: {
+            callbacks: {
+                title: function(context) {
+                    return context[0].chart.data.labels[context[0].dataIndex];
+                }
+            }
+        },
         datalabels: {
             color: "#1a1f36", font: { weight: "bold", size: 11 },
             anchor: "end", align: "right", display: true, formatter: (value) => value

@@ -226,7 +226,7 @@ button {
 
 .canvas-wrapper {
     position: relative;
-    height: 340px;
+    height: 380px;
     min-height: 0;
 }
 
@@ -360,6 +360,6 @@ button {
     }
 
     .canvas-wrapper {
-        height: 280px;
+        height: 480px;
     }
 }

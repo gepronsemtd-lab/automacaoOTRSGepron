@@ -103,10 +103,7 @@ def preparar_dashboard_data(df, agora_local, ano_atual, periodo_referencia):
                 "values": top_analistas.astype(int).tolist(),
             },
             "servicos": {
-                "labels": [
-                    str(servico)[:45] + "..." if len(str(servico)) > 45 else str(servico)
-                    for servico in top_servicos.index.tolist()
-                ],
+                "labels": top_servicos.index.tolist(),
                 "values": top_servicos.astype(int).tolist(),
             },
             "timeline": {
