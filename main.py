@@ -560,7 +560,7 @@ def gerar_html_dashboard(dashboard_data):
                 `)
                 .join("");
 
-            const palette = ["#056cf2", "#ff5f52", "#ffbd45", "#4ade80", "#8b5cf6", "#1a1f36", "#38bdf8", "#f97316"];
+            const palette = ["#1677ff", "#198f55", "#ffb800", "#e6374d", "#19c2dd", "#6f7a82", "#111827"];
 
             const commonOptions = {
                 responsive: true,
@@ -576,6 +576,16 @@ def gerar_html_dashboard(dashboard_data):
                         anchor: "end",
                         align: "top",
                         formatter: (value) => value > 0 ? value : ""
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: "#626a73", font: { family: "Inter" } },
+                        grid: { color: "#e4e8ee" }
+                    },
+                    y: {
+                        ticks: { color: "#626a73", font: { family: "Inter" } },
+                        grid: { color: "#e4e8ee" }
                     }
                 }
             };
@@ -602,10 +612,10 @@ def gerar_html_dashboard(dashboard_data):
                 data: {
                     labels: data.charts.timeline.labels,
                     datasets: [
-                        { label: "Total", data: data.charts.timeline.total, borderColor: "#056cf2", backgroundColor: "#056cf2", tension: 0.2 },
-                        { label: "N1", data: data.charts.timeline.n1, borderColor: "#4ade80", backgroundColor: "#4ade80", tension: 0.2 },
-                        { label: "N2", data: data.charts.timeline.n2, borderColor: "#ffbd45", backgroundColor: "#ffbd45", tension: 0.2 },
-                        { label: "N3", data: data.charts.timeline.n3, borderColor: "#ff5f52", backgroundColor: "#ff5f52", tension: 0.2 }
+                        { label: "Total", data: data.charts.timeline.total, borderColor: "#1677ff", backgroundColor: "#1677ff", tension: 0.2 },
+                        { label: "N1", data: data.charts.timeline.n1, borderColor: "#198f55", backgroundColor: "#198f55", tension: 0.2 },
+                        { label: "N2", data: data.charts.timeline.n2, borderColor: "#ffb800", backgroundColor: "#ffb800", tension: 0.2 },
+                        { label: "N3", data: data.charts.timeline.n3, borderColor: "#e6374d", backgroundColor: "#e6374d", tension: 0.2 }
                     ]
                 },
                 options: commonOptions
@@ -627,7 +637,7 @@ def gerar_html_dashboard(dashboard_data):
             });
 
             new Chart(document.getElementById("chartFilas"), {
-                type: "pie",
+                type: "doughnut",
                 data: {
                     labels: data.charts.filas.labels,
                     datasets: [{ data: data.charts.filas.values, backgroundColor: ["#4ade80", "#ffbd45", "#ff5f52"] }]
@@ -645,7 +655,7 @@ def gerar_html_dashboard(dashboard_data):
                 type: "bar",
                 data: {
                     labels: data.charts.estados.labels,
-                    datasets: [{ label: "Qtd", data: data.charts.estados.values, backgroundColor: palette }]
+                    datasets: [{ label: "Qtd", data: data.charts.estados.values, backgroundColor: palette, borderRadius: 8 }]
                 },
                 options: commonOptions
             });
@@ -654,7 +664,7 @@ def gerar_html_dashboard(dashboard_data):
                 type: "bar",
                 data: {
                     labels: data.charts.analistas.labels,
-                    datasets: [{ label: "Atendimentos", data: data.charts.analistas.values, backgroundColor: "#8b5cf6" }]
+                    datasets: [{ label: "Atendimentos", data: data.charts.analistas.values, backgroundColor: "#8b5cf6", borderRadius: 8 }]
                 },
                 options: horizontalOptions
             });
@@ -663,7 +673,7 @@ def gerar_html_dashboard(dashboard_data):
                 type: "bar",
                 data: {
                     labels: data.charts.servicos.labels,
-                    datasets: [{ label: "Qtd", data: data.charts.servicos.values, backgroundColor: "#1a1f36" }]
+                    datasets: [{ label: "Qtd", data: data.charts.servicos.values, backgroundColor: "#1a1f36", borderRadius: 8 }]
                 },
                 options: horizontalOptions
             });
