@@ -156,7 +156,7 @@ new Chart(document.getElementById("chartFilas"), {
 
 new Chart(document.getElementById("chartEstados"), {
     type: "bar",
-    data: { labels: data.charts.estados.labels, datasets: [{ label: "Qtd", data: data.charts.estados.values, backgroundColor: palette, borderRadius: 8 }] },
+    data: { labels: data.charts.estados.labels, datasets: [{ label: "Qtd", data: data.charts.estados.values, backgroundColor: ["#4ade80", "#1677ff", "#ffbd45"], borderRadius: 8 }] },
     options: commonOptions
 });
 
