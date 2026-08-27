@@ -27,6 +27,16 @@ def limpar_dataframe(df: pd.DataFrame) -> pd.DataFrame:
             'removed': 'Removido'
         }
         df['estado'] = df['estado'].str.lower().map(lambda x: mapa_estados.get(x, str(x).title()))
+        
+    if 'proprietarionome' in df.columns:
+        df['proprietarionome'] = df['proprietarionome'].apply(
+            lambda x: " ".join(str(x).strip().split()[:2]) if pd.notna(x) and str(x).strip() else "Não informado"
+        )
+    
+    if 'servico' in df.columns:
+        df['servico'] = df['servico'].apply(
+            lambda x: re.sub(r'(?i)^(se\s*)?suite\s*-\s*', '', str(x)).strip() if pd.notna(x) else "Não informado"
+        )
 
     return df
 
