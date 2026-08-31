@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Gerencial de Volumetria OTRS</title>
+    
+    <!-- Dependências Externas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <i data-lucide="diamond"></i>
+            <span>Dashboard Gerencial de Volumetria OTRS</span>
+        </div>
+        <div class="sync-pill">
+            <i data-lucide="clock"></i>
+            <span id="update-info"></span>
+        </div>
+    </header>
+
+    <main class="dashboard-shell">
+        <section class="section-card intro-card">
+            <div>
+                <p class="eyebrow">GEPRON / SESUITE</p>
+                <h1>Volumetria de Chamados OTRS</h1>
+                <p class="subtitle">Acompanhamento gerencial dos chamados por nível, tipo, estado, serviço e analista.</p>
+            </div>
+            <span class="period-pill" id="period-info"></span>
+        </section>
+
+        <nav class="tabs-card">
+            <button class="tab-button active" type="button"><i data-lucide="chart-line"></i> Visao Geral / Analytics</button>
+            <button class="tab-button" type="button"><i data-lucide="list-checks"></i> Detalhamento Operacional</button>
+        </nav>
+
+        <section class="kpi-grid" id="kpi-container"></section>
+
+        <section class="overview-grid">
+            <article class="panel-card progress-panel">
+                <div class="panel-title"><i data-lucide="rocket"></i><span>Distribuição por Nível</span></div>
+                <div id="progress-container"></div>
+            </article>
+
+            <article class="panel-card chart-wide">
+                <div class="panel-title"><i data-lucide="activity"></i><span>Evolução Mensal</span></div>
+                <div class="canvas-wrapper"><canvas id="chartTimeline"></canvas></div>
+            </article>
+        </section>
+
+        <section class="chart-grid">
+            <article class="panel-card col-4">
+                <div class="panel-title"><i data-lucide="pie-chart"></i><span>Volume por Tipo</span></div>
+                <div class="canvas-wrapper"><canvas id="chartTipos"></canvas></div>
+            </article>
+
+            <article class="panel-card col-4">
+                <div class="panel-title"><i data-lucide="layers"></i><span>Distribuição por Fila</span></div>
+                <div class="canvas-wrapper"><canvas id="chartFilas"></canvas></div>
+            </article>
+
+            <article class="panel-card col-4">
+                <div class="panel-title"><i data-lucide="bar-chart-3"></i><span>Classificação por Estado</span></div>
+                <div class="canvas-wrapper"><canvas id="chartEstados"></canvas></div>
+            </article>
+
+            <article class="panel-card col-6">
+                <div class="panel-title"><i data-lucide="users"></i><span>Top 10 Analistas</span></div>
+                <div class="canvas-wrapper"><canvas id="chartAnalistas"></canvas></div>
+            </article>
+
+            <article class="panel-card col-6">
+                <div class="panel-title"><i data-lucide="briefcase-business"></i><span>Top 10 Serviços</span></div>
+                <div class="table-wrapper" id="tableServicos"></div>
+            </article>
+            
+        </section>
+    </main>
+
+    <!-- Injeção de Dados do Python -->
+    <script>
+        window.DASHBOARD_DATA = DATA_PLACEHOLDER;
+    </script>
+    <script src="assets/app.js"></script>
+</body>
+</html>

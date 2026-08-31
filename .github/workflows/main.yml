@@ -26,10 +26,16 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
 
       - name: Instalar dependencias
         run: pip install -r requirements.txt
 
+      - name: Executar Testes de Validação (Quality Gate)
+        run: pytest tests/ -v
+        # Se este passo falhar (ex: colunas vieram erradas do OTRS), 
+        # o pipeline é abortado e a dashboard atual não é sobrescrita.
+        
       - name: Gerar dashboard
         env:
           OTRS_USER: ${{ secrets.OTRS_USER }}
