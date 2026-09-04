@@ -1,7 +1,28 @@
-Chart.register(ChartDataLabels);
+const EMPTY_DASHBOARD_DATA = {
+    updated: "--",
+    period: "",
+    kpis: [],
+    progress: { items: [] },
+    charts: {
+        tipos: { labels: [], values: [] },
+        filas: { labels: [], values: [] },
+        estados: { labels: [], values: [] },
+        analistas: { labels: [], values: [] },
+        servicos: { labels: [], values: [] },
+        timeline: { labels: [], total: [], n1: [], n2: [], n3: [] },
+    },
+    records: [],
+    filters: {},
+};
+
+if (window.Chart && window.ChartDataLabels) {
+    Chart.register(ChartDataLabels);
+}
 
 // Lê os dados que o Python injetou no HTML
-const data = window.DASHBOARD_DATA;
+const injectedData = window.DASHBOARD_DATA;
+const hasInjectedData = injectedData && typeof injectedData === "object";
+const data = hasInjectedData ? injectedData : EMPTY_DASHBOARD_DATA;
 const allRecords = data.records || [];
 let filteredRecords = [...allRecords];
 
@@ -10,6 +31,34 @@ const logoutButton = document.getElementById("logout-button");
 const themeToggle = document.getElementById("theme-toggle");
 const filterBody = document.getElementById("filter-body");
 const filterToggle = document.getElementById("filter-toggle");
+const resultCount = document.getElementById("result-count");
+const operationsCount = document.getElementById("operations-count");
+const emptyState = document.getElementById("empty-state");
+
+function refreshIcons() {
+    if (window.lucide) {
+        lucide.createIcons();
+        document.documentElement.classList.add("icons-ready");
+    } else {
+        document.documentElement.classList.remove("icons-ready");
+    }
+}
+
+function getStoredTheme() {
+    try {
+        return localStorage.getItem("dashboardTheme");
+    } catch (error) {
+        return null;
+    }
+}
+
+function setStoredTheme(theme) {
+    try {
+        localStorage.setItem("dashboardTheme", theme);
+    } catch (error) {
+        // O Safari pode bloquear localStorage em arquivo local.
+    }
+}
 
 function updateThemeButton() {
     if (!themeToggle) return;
@@ -17,20 +66,20 @@ function updateThemeButton() {
     const isDark = document.documentElement.dataset.theme === "dark";
     themeToggle.title = isDark ? "Alternar para tema claro" : "Alternar para tema escuro";
     themeToggle.innerHTML = isDark
-        ? '<i data-lucide="sun"></i>'
-        : '<i data-lucide="moon"></i>';
-    lucide.createIcons();
+        ? '<i data-lucide="sun" data-fallback="☀"></i>'
+        : '<i data-lucide="moon" data-fallback="☾"></i>';
+    refreshIcons();
 }
 
 themeToggle?.addEventListener("click", () => {
     const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = nextTheme;
-    localStorage.setItem("dashboardTheme", nextTheme);
+    setStoredTheme(nextTheme);
     updateThemeButton();
     renderCharts();
 });
 
-const savedTheme = localStorage.getItem("dashboardTheme");
+const savedTheme = getStoredTheme();
 if (savedTheme) {
     document.documentElement.dataset.theme = savedTheme;
 }
@@ -58,19 +107,54 @@ logoutButton?.addEventListener("click", () => {
 
 // Preenche os textos de cabeçalho
 document.getElementById("update-info").innerText = `Sincronizado: ${data.updated}`;
-document.getElementById("period-info").innerText = data.period;
+const periodInfo = document.getElementById("period-info");
+if (periodInfo) {
+    periodInfo.innerText = data.period;
+}
 
-// Funcionalidade de clique nas abas
-const tabButtons = document.querySelectorAll('.tab-button');
-tabButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        // Remove a cor azul de todas as abas
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        
-        // Adiciona a cor azul apenas na aba que foi clicada
-        button.classList.add('active');
-        
-        // Lógica a ser adicionada....
+function formatCountLabel(total) {
+    if (!hasInjectedData) {
+        return "Dados não carregados";
+    }
+
+    return total === 1 ? "1 chamado encontrado" : `${total} chamados encontrados`;
+}
+
+function updateResultCount(records) {
+    const label = formatCountLabel(records.length);
+    if (resultCount) {
+        resultCount.innerText = label;
+    }
+    if (operationsCount) {
+        operationsCount.innerText = label;
+    }
+}
+
+function updateEmptyState(records) {
+    if (!emptyState) return;
+
+    emptyState.hidden = records.length > 0 && hasInjectedData;
+    emptyState.querySelector("h2").innerText = hasInjectedData
+        ? "Nenhum chamado encontrado"
+        : "Dashboard aberto sem dados";
+    emptyState.querySelector("p").innerText = hasInjectedData
+        ? "Revise os filtros aplicados ou limpe a busca para voltar à visão completa."
+        : "Abra o painel pelo servidor Flask ou pelo arquivo dist/index.html gerado pelo pipeline.";
+}
+
+function switchTab(tabName) {
+    document.querySelectorAll(".tab-button").forEach((button) => {
+        button.classList.toggle("active", button.dataset.tab === tabName);
+    });
+
+    document.querySelectorAll(".tab-panel").forEach((panel) => {
+        panel.classList.toggle("active", panel.id === `tab-${tabName}`);
+    });
+}
+
+document.querySelectorAll(".tab-button").forEach((button) => {
+    button.addEventListener("click", () => {
+        switchTab(button.dataset.tab);
     });
 });
 
@@ -114,6 +198,29 @@ function chartFromCounts(records, field, limit = null) {
 
 function percentualJS(parte, total) {
     return total ? Math.round((parte / total * 100) * 10) / 10 : 0;
+}
+
+function formatDateBR(value) {
+    if (!value) return "Não informado";
+
+    const date = parseDashboardDate(value);
+    if (Number.isNaN(date.getTime())) {
+        return String(value).slice(0, 10) || "Não informado";
+    }
+
+    return date.toLocaleDateString("pt-BR");
+}
+
+function parseDashboardDate(value) {
+    return new Date(String(value).replace(" ", "T"));
+}
+
+function calculateAgeDays(value) {
+    const date = parseDashboardDate(value);
+    if (Number.isNaN(date.getTime())) return "Não informado";
+
+    const diffMs = Date.now() - date.getTime();
+    return Math.max(0, Math.floor(diffMs / 86400000));
 }
 
 function buildKpis(records) {
@@ -224,9 +331,9 @@ filterToggle?.addEventListener("click", () => {
     filterBody.hidden = !isHidden;
     filterToggle.title = filterBody.hidden ? "Expandir filtros" : "Recolher filtros";
     filterToggle.innerHTML = filterBody.hidden
-        ? '<i data-lucide="chevron-down"></i>'
-        : '<i data-lucide="chevron-up"></i>';
-    lucide.createIcons();
+        ? '<i data-lucide="chevron-down" data-fallback="⌄"></i>'
+        : '<i data-lucide="chevron-up" data-fallback="⌃"></i>';
+    refreshIcons();
 });
 
 // Paleta de Cores e Configurações base dos gráficos
@@ -449,6 +556,10 @@ function buildCharts(records) {
 }
 
 function renderCharts(records = filteredRecords) {
+    if (!window.Chart || !hasInjectedData) {
+        return;
+    }
+
     const charts = buildCharts(records);
 
     chartInstances.forEach((chart) => chart.destroy());
@@ -495,6 +606,13 @@ function renderCharts(records = filteredRecords) {
 
 function renderServicesTable(records) {
     const servicos = allRecords.length ? chartFromCounts(records, "servico", 10) : data.charts.servicos;
+    const table = document.getElementById("tableServicos");
+    if (!table) return;
+
+    if (!servicos.labels.length) {
+        table.innerHTML = `<div class="table-empty">Nenhum serviço encontrado para os filtros selecionados.</div>`;
+        return;
+    }
 
     let tableHTML = `
         <table class="ranking-table">
@@ -522,15 +640,63 @@ function renderServicesTable(records) {
     });
 
     tableHTML += `</tbody></table>`;
-    document.getElementById("tableServicos").innerHTML = tableHTML;
+    table.innerHTML = tableHTML;
+}
+
+function renderOperationalTable(records) {
+    const table = document.getElementById("operational-table");
+    if (!table) return;
+
+    if (!records.length) {
+        table.innerHTML = `<div class="table-empty">Nenhum chamado encontrado para os filtros selecionados.</div>`;
+        return;
+    }
+
+    const rows = records.map((item) => `
+        <tr>
+            <td>${escapeHTML(item.numerochamado || "Não informado")}</td>
+            <td class="title-cell">${escapeHTML(item.titulo || "Não informado")}</td>
+            <td>${escapeHTML(item.fila || "Não informado")}</td>
+            <td>${escapeHTML(item.estado || "Não informado")}</td>
+            <td>${escapeHTML(item.proprietarionome || "Não informado")}</td>
+            <td>${escapeHTML(item.servico || "Não informado")}</td>
+            <td>${escapeHTML(item.prioridade || "Não informado")}</td>
+            <td>${escapeHTML(formatDateBR(item.datacriacao))}</td>
+            <td>${escapeHTML(formatDateBR(item.datamodificacao))}</td>
+            <td class="numeric-cell">${escapeHTML(calculateAgeDays(item.datacriacao))}</td>
+        </tr>
+    `).join("");
+
+    table.innerHTML = `
+        <table class="ranking-table operational-table">
+            <thead>
+                <tr>
+                    <th>Chamado</th>
+                    <th>Título</th>
+                    <th>Nível</th>
+                    <th>Status</th>
+                    <th>Executor</th>
+                    <th>Serviço</th>
+                    <th>Prioridade</th>
+                    <th>Criação</th>
+                    <th>Modificação</th>
+                    <th>Dias</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>
+    `;
 }
 
 function renderDashboard(records) {
+    updateResultCount(records);
+    updateEmptyState(records);
     const kpis = renderKpis(records);
     renderProgress(records, kpis);
     renderCharts(records);
     renderServicesTable(records);
-    lucide.createIcons();
+    renderOperationalTable(records);
+    refreshIcons();
 }
 
 renderDashboard(filteredRecords);

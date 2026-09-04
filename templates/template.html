@@ -6,9 +6,9 @@
     <title>Dashboard Gerencial de Volumetria OTRS</title>
     
     <!-- Dependências Externas -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script defer src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     
     <!-- CSS -->
@@ -17,62 +17,62 @@
 <body>
 <header class="topbar">
     <div class="brand">
-        <i data-lucide="diamond"></i>
+        <i data-lucide="diamond" data-fallback="◇"></i>
         <span>Dashboard Gerencial OTRS</span>
     </div>
 
     <div class="topbar-actions">
         <div class="sync-pill">
-            <i data-lucide="clock"></i>
+            <i data-lucide="clock" data-fallback="◷"></i>
             <span id="update-info"></span>
         </div>
         <button class="icon-button" id="theme-toggle" type="button" title="Alternar tema">
-            <i data-lucide="moon"></i>
+            <i data-lucide="moon" data-fallback="☾"></i>
         </button>
         <button class="action-button" id="sync-button" type="button">
-            <i data-lucide="refresh-cw"></i>
+            <i data-lucide="refresh-cw" data-fallback="↻"></i>
             <span>Sincronizar</span>
         </button>
         <button class="danger-button" id="logout-button" type="button">
-            <i data-lucide="log-out"></i>
+            <i data-lucide="log-out" data-fallback="↪"></i>
             <span>Sair</span>
         </button>
     </div>
 </header>
 
     <main class="dashboard-shell">
-        <section class="section-card intro-card">
-            <div>
-                <p class="eyebrow">GEPRON / SESUITE</p>
-                <h1>Volumetria de Chamados OTRS</h1>
-                <p class="subtitle">Acompanhamento gerencial dos chamados por nível, tipo, estado, serviço e analista.</p>
-            </div>
-            <span class="period-pill" id="period-info"></span>
-        </section>
-
         <section class="filter-card">
             <div class="filter-header">
                 <div class="panel-title">
-                    <i data-lucide="filter"></i>
+                    <i data-lucide="filter" data-fallback=""></i>
                     <span>Filtragem e pesquisa das atividades</span>
                 </div>
-                <button class="icon-button ghost" id="filter-toggle" type="button" title="Recolher filtros">
-                    <i data-lucide="chevron-up"></i>
-                </button>
+                <div class="filter-actions">
+                    <button class="icon-button ghost" id="filter-toggle" type="button" title="Recolher filtros">
+                        <i data-lucide="chevron-up" data-fallback="⌃"></i>
+                    </button>
+                    <span class="result-count" id="result-count"></span>
+                </div>
             </div>
 
             <div class="filter-grid" id="filter-body">
                 <label>
                     Nível
-                    <select id="filter-nivel"></select>
+                    <span class="select-wrapper">
+                        <select id="filter-nivel"></select>
+                    </span>
                 </label>
                 <label>
                     Gerência
-                    <select id="filter-gerencia"></select>
+                    <span class="select-wrapper">
+                        <select id="filter-gerencia"></select>
+                    </span>
                 </label>
                 <label>
                     Executor
-                    <select id="filter-executor"></select>
+                    <span class="select-wrapper">
+                        <select id="filter-executor"></select>
+                    </span>
                 </label>
                 <label>
                     Pesquisar título
@@ -80,64 +80,85 @@
                 </label>
                 <label>
                     Status
-                    <select id="filter-status"></select>
+                    <span class="select-wrapper">
+                        <select id="filter-status"></select>
+                    </span>
                 </label>
                 <button class="clear-button" id="clear-filters" type="button">Limpar</button>
             </div>
         </section>
 
         <nav class="tabs-card">
-            <button class="tab-button active" type="button"><i data-lucide="chart-line"></i> Visao Geral / Analytics</button>
-            <button class="tab-button" type="button"><i data-lucide="list-checks"></i> Detalhamento Operacional</button>
+            <button class="tab-button active" data-tab="overview" type="button"><i data-lucide="chart-line" data-fallback=""></i> Visão Geral / Analytics</button>
+            <button class="tab-button" data-tab="operations" type="button"><i data-lucide="list-checks" data-fallback=""></i> Detalhamento Operacional</button>
         </nav>
 
-        <section class="kpi-grid" id="kpi-container"></section>
-
-        <section class="overview-grid">
-            <article class="panel-card progress-panel">
-                <div class="panel-title"><i data-lucide="rocket"></i><span>Distribuição por Nível</span></div>
-                <div id="progress-container"></div>
-            </article>
-
-            <article class="panel-card chart-wide">
-                <div class="panel-title"><i data-lucide="activity"></i><span>Evolução Mensal</span></div>
-                <div class="canvas-wrapper"><canvas id="chartTimeline"></canvas></div>
-            </article>
+        <section class="empty-state" id="empty-state" hidden>
+            <i data-lucide="search-x" data-fallback=""></i>
+            <div>
+                <h2>Nenhum chamado encontrado</h2>
+                <p>Revise os filtros aplicados ou limpe a busca para voltar à visão completa.</p>
+            </div>
         </section>
 
-        <section class="chart-grid">
-            <article class="panel-card col-4">
-                <div class="panel-title"><i data-lucide="pie-chart"></i><span>Volume por Tipo</span></div>
-                <div class="canvas-wrapper"><canvas id="chartTipos"></canvas></div>
-            </article>
+        <section class="tab-panel active" id="tab-overview">
+            <section class="kpi-grid" id="kpi-container"></section>
 
-            <article class="panel-card col-4">
-                <div class="panel-title"><i data-lucide="layers"></i><span>Distribuição por Fila</span></div>
-                <div class="canvas-wrapper"><canvas id="chartFilas"></canvas></div>
-            </article>
+            <section class="overview-grid">
+                <article class="panel-card progress-panel">
+                    <div class="panel-title"><i data-lucide="rocket" data-fallback=""></i><span>Distribuição por Nível</span></div>
+                    <div id="progress-container"></div>
+                </article>
 
-            <article class="panel-card col-4">
-                <div class="panel-title"><i data-lucide="bar-chart-3"></i><span>Classificação por Estado</span></div>
-                <div class="canvas-wrapper"><canvas id="chartEstados"></canvas></div>
-            </article>
+                <article class="panel-card chart-wide">
+                    <div class="panel-title"><i data-lucide="activity" data-fallback=""></i><span>Evolução Mensal</span></div>
+                    <div class="canvas-wrapper"><canvas id="chartTimeline"></canvas></div>
+                </article>
+            </section>
 
-            <article class="panel-card col-6">
-                <div class="panel-title"><i data-lucide="users"></i><span>Top 10 Analistas</span></div>
-                <div class="canvas-wrapper"><canvas id="chartAnalistas"></canvas></div>
-            </article>
+            <section class="chart-grid">
+                <article class="panel-card col-4">
+                    <div class="panel-title"><i data-lucide="pie-chart" data-fallback=""></i><span>Volume por Tipo</span></div>
+                    <div class="canvas-wrapper"><canvas id="chartTipos"></canvas></div>
+                </article>
 
-            <article class="panel-card col-6">
-                <div class="panel-title"><i data-lucide="briefcase-business"></i><span>Top 10 Serviços</span></div>
-                <div class="table-wrapper" id="tableServicos"></div>
+                <article class="panel-card col-4">
+                    <div class="panel-title"><i data-lucide="layers" data-fallback=""></i><span>Distribuição por Fila</span></div>
+                    <div class="canvas-wrapper"><canvas id="chartFilas"></canvas></div>
+                </article>
+
+                <article class="panel-card col-4">
+                    <div class="panel-title"><i data-lucide="bar-chart-3" data-fallback=""></i><span>Classificação por Estado</span></div>
+                    <div class="canvas-wrapper"><canvas id="chartEstados"></canvas></div>
+                </article>
+
+                <article class="panel-card col-6">
+                    <div class="panel-title"><i data-lucide="users" data-fallback=""></i><span>Top 10 Analistas</span></div>
+                    <div class="canvas-wrapper"><canvas id="chartAnalistas"></canvas></div>
+                </article>
+
+                <article class="panel-card col-6">
+                    <div class="panel-title"><i data-lucide="briefcase-business" data-fallback=""></i><span>Top 10 Serviços</span></div>
+                    <div class="table-wrapper" id="tableServicos"></div>
+                </article>
+            </section>
+        </section>
+
+        <section class="tab-panel" id="tab-operations">
+            <article class="panel-card">
+                <div class="operations-header">
+                    <div class="panel-title"><i data-lucide="list-checks" data-fallback=""></i><span>Detalhamento Operacional</span></div>
+                    <span class="result-count" id="operations-count"></span>
+                </div>
+                <div class="table-wrapper operations-table-wrapper" id="operational-table"></div>
             </article>
-            
         </section>
     </main>
 
     <!-- Injeção de Dados do Python -->
     <script>
-        window.DASHBOARD_DATA = DATA_PLACEHOLDER;
+        window.DASHBOARD_DATA = "DATA_PLACEHOLDER";
     </script>
-    <script src="assets/app.js"></script>
+    <script defer src="assets/app.js"></script>
 </body>
 </html>

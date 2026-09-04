@@ -127,20 +127,26 @@ def preparar_dashboard_data(df, agora_local, ano_atual, periodo_referencia):
     }
 
     records_columns = [
+        "numerochamado",
         "fila",
         "estado",
         "proprietarionome",
         "servico",
         "titulo",
         "tipo",
+        "prioridade",
         "datacriacao",
+        "datamodificacao",
         "gerencia",
     ]
 
     records = (
         df[[col for col in records_columns if col in df.columns]]
         .fillna("Não informado")
-        .assign(datacriacao=lambda base: base["datacriacao"].astype(str) if "datacriacao" in base.columns else "")
+        .assign(
+            datacriacao=lambda base: base["datacriacao"].astype(str) if "datacriacao" in base.columns else "",
+            datamodificacao=lambda base: base["datamodificacao"].astype(str) if "datamodificacao" in base.columns else "",
+        )
         .to_dict(orient="records")
     )
 

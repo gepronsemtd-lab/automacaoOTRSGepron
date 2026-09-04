@@ -10,6 +10,7 @@ load_dotenv()
 app = Flask(__name__, static_folder="dist")
 app.secret_key = os.getenv("DASHBOARD_SECRET_KEY")
 
+DASHBOARD_PORT = 5001
 DASHBOARD_USER = os.getenv("DASHBOARD_USER")
 DASHBOARD_PASS = os.getenv("DASHBOARD_PASS")
 
@@ -76,4 +77,4 @@ def assets(path):
     return send_from_directory("dist/assets", path)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5000")))
+    app.run(host="0.0.0.0", port=DASHBOARD_PORT)

@@ -145,6 +145,42 @@ button {
     font-weight: 800;
 }
 
+i[data-lucide] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    font-style: normal;
+    line-height: 1;
+}
+
+i[data-lucide]::before {
+    content: attr(data-fallback);
+}
+
+.icons-ready i[data-lucide]::before {
+    content: "";
+}
+
+.topbar svg,
+.panel-title svg,
+.tab-button svg,
+.sync-pill svg,
+.icon-button svg,
+.action-button svg,
+.danger-button svg {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 auto;
+    stroke-width: 2.5;
+}
+
+.brand svg {
+    width: 24px;
+    height: 24px;
+}
+
 .topbar-actions {
     display: flex;
     align-items: center;
@@ -241,9 +277,31 @@ button {
     border-bottom: 1px solid var(--border);
 }
 
+.filter-actions,
+.operations-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.filter-actions {
+    margin-left: auto;
+}
+
+.result-count {
+    color: var(--primary);
+    background: var(--primary-soft);
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
 .filter-grid {
     display: grid;
-    grid-template-columns: repeat(5, minmax(160px, 1fr)) 120px;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) 120px;
     gap: 16px;
     align-items: end;
     padding-top: 18px;
@@ -256,21 +314,56 @@ button {
     color: var(--muted);
     font-size: 13px;
     font-weight: 800;
+    min-width: 0;
+}
+
+.select-wrapper {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.select-wrapper::after {
+    content: "";
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--muted);
+    border-bottom: 2px solid var(--muted);
+    pointer-events: none;
+    transform: translateY(-65%) rotate(45deg);
 }
 
 .filter-grid select,
 .filter-grid input {
-    min-height: 44px;
+    width: 100%;
+    height: 44px;
     border: 1px solid var(--border);
     border-radius: 8px;
     background: var(--surface);
     color: var(--text);
     padding: 0 14px;
     font: inherit;
+    font-weight: 700;
+    outline: none;
+}
+
+.filter-grid select {
+    appearance: none;
+    padding-right: 38px;
+}
+
+.filter-grid select:focus,
+.filter-grid input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
 }
 
 .clear-button {
-    min-height: 44px;
+    width: 100%;
+    height: 44px;
     border-radius: 8px;
     border: 1px solid var(--muted);
     background: transparent;
@@ -305,6 +398,45 @@ button {
 .tab-button.active {
     background: var(--primary);
     color: #ffffff;
+}
+
+.tab-panel {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.tab-panel.active {
+    display: flex;
+}
+
+.empty-state {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 22px;
+}
+
+.empty-state[hidden] {
+    display: none;
+}
+
+.empty-state svg {
+    color: var(--primary);
+}
+
+.empty-state h2 {
+    margin: 0 0 4px;
+    color: var(--text);
+    font-size: 16px;
+}
+
+.empty-state p {
+    margin: 0;
 }
 
 .kpi-grid {
@@ -368,6 +500,10 @@ button {
     max-height: 360px;
 }
 
+.operations-table-wrapper {
+    max-height: 620px;
+}
+
 .ranking-table {
     width: 100%;
     border-collapse: collapse;
@@ -394,6 +530,37 @@ button {
 
 .ranking-table tr:last-child td {
     border-bottom: none;
+}
+
+.operational-table {
+    min-width: 1180px;
+}
+
+.operational-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--surface);
+}
+
+.title-cell {
+    min-width: 260px;
+    max-width: 420px;
+}
+
+.numeric-cell {
+    text-align: right;
+    font-weight: 800;
+}
+
+.table-empty {
+    color: var(--muted);
+    background: var(--surface-muted);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    text-align: center;
+    font-weight: 700;
 }
 
 .rank-badge {
@@ -511,9 +678,16 @@ button {
 
     .topbar,
     .intro-card,
-    .tabs-card {
+    .tabs-card,
+    .filter-header,
+    .operations-header {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .filter-actions {
+        width: 100%;
+        justify-content: space-between;
     }
 
     .dashboard-shell {
