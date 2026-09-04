@@ -15,16 +15,30 @@
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-    <header class="topbar">
-        <div class="brand">
-            <i data-lucide="diamond"></i>
-            <span>Dashboard Gerencial de Volumetria OTRS</span>
-        </div>
+<header class="topbar">
+    <div class="brand">
+        <i data-lucide="diamond"></i>
+        <span>Dashboard Gerencial OTRS</span>
+    </div>
+
+    <div class="topbar-actions">
         <div class="sync-pill">
             <i data-lucide="clock"></i>
             <span id="update-info"></span>
         </div>
-    </header>
+        <button class="icon-button" id="theme-toggle" type="button" title="Alternar tema">
+            <i data-lucide="moon"></i>
+        </button>
+        <button class="action-button" id="sync-button" type="button">
+            <i data-lucide="refresh-cw"></i>
+            <span>Sincronizar</span>
+        </button>
+        <button class="danger-button" id="logout-button" type="button">
+            <i data-lucide="log-out"></i>
+            <span>Sair</span>
+        </button>
+    </div>
+</header>
 
     <main class="dashboard-shell">
         <section class="section-card intro-card">
@@ -34,6 +48,42 @@
                 <p class="subtitle">Acompanhamento gerencial dos chamados por nível, tipo, estado, serviço e analista.</p>
             </div>
             <span class="period-pill" id="period-info"></span>
+        </section>
+
+        <section class="filter-card">
+            <div class="filter-header">
+                <div class="panel-title">
+                    <i data-lucide="filter"></i>
+                    <span>Filtragem e pesquisa das atividades</span>
+                </div>
+                <button class="icon-button ghost" id="filter-toggle" type="button" title="Recolher filtros">
+                    <i data-lucide="chevron-up"></i>
+                </button>
+            </div>
+
+            <div class="filter-grid" id="filter-body">
+                <label>
+                    Nível
+                    <select id="filter-nivel"></select>
+                </label>
+                <label>
+                    Gerência
+                    <select id="filter-gerencia"></select>
+                </label>
+                <label>
+                    Executor
+                    <select id="filter-executor"></select>
+                </label>
+                <label>
+                    Pesquisar título
+                    <input id="filter-titulo" type="search" placeholder="Palavra-chave...">
+                </label>
+                <label>
+                    Status
+                    <select id="filter-status"></select>
+                </label>
+                <button class="clear-button" id="clear-filters" type="button">Limpar</button>
+            </div>
         </section>
 
         <nav class="tabs-card">

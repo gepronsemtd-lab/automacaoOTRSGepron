@@ -1,5 +1,8 @@
 import os
 from zoneinfo import ZoneInfo
+from dotenv import load_dotenv
+
+load_dotenv()
 
 LOCAL_TIMEZONE = ZoneInfo("America/Fortaleza")
 OTRS_URL_BASE = "https://atendimento.sead.pb.gov.br/otrs/index.pl"
