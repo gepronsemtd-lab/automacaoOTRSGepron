@@ -126,4 +126,36 @@ def preparar_dashboard_data(df, agora_local, ano_atual, periodo_referencia):
         },
     }
 
+    records_columns = [
+        "numerochamado",
+        "fila",
+        "estado",
+        "proprietarionome",
+        "servico",
+        "titulo",
+        "tipo",
+        "prioridade",
+        "datacriacao",
+        "datamodificacao",
+        "gerencia",
+    ]
+
+    records = (
+        df[[col for col in records_columns if col in df.columns]]
+        .fillna("Não informado")
+        .assign(
+            datacriacao=lambda base: base["datacriacao"].astype(str) if "datacriacao" in base.columns else "",
+            datamodificacao=lambda base: base["datamodificacao"].astype(str) if "datamodificacao" in base.columns else "",
+        )
+        .to_dict(orient="records")
+    )
+
+    dashboard_data["records"] = records
+    dashboard_data["filters"] = {
+        "niveis": sorted(df["fila"].dropna().unique().tolist()) if "fila" in df.columns else [],
+        "tipos": sorted(df["tipo"].dropna().unique().tolist()) if "tipo" in df.columns else [],
+        "executores": sorted(df["proprietarionome"].dropna().unique().tolist()) if "proprietarionome" in df.columns else [],
+        "status": sorted(df["estado"].dropna().unique().tolist()) if "estado" in df.columns else [],
+    }
+
     return dashboard_data

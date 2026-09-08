@@ -10,7 +10,7 @@ def gerar_e_salvar_dashboard(dashboard_data, template_path=TEMPLATE_FILE):
 
     # Injeta os dados na variável window.DASHBOARD_DATA
     html_final = html_template.replace(
-        "DATA_PLACEHOLDER",
+        '"DATA_PLACEHOLDER"',
         json.dumps(dashboard_data, ensure_ascii=False),
     )
 
