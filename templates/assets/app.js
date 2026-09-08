@@ -223,6 +223,49 @@ function calculateAgeDays(value) {
     return Math.max(0, Math.floor(diffMs / 86400000));
 }
 
+function getOperationalStatusRank(status) {
+    const normalizedStatus = String(status || "").toLowerCase();
+
+    if (normalizedStatus.includes("novo")) return 0;
+    if (normalizedStatus.includes("aberto")) return 1;
+    if (normalizedStatus.includes("pendente")) return 2;
+    if (normalizedStatus.includes("fechado")) return 4;
+    return 3;
+}
+
+function getOperationalPriorityRank(priority) {
+    const match = String(priority || "").match(/\d+/);
+    return match ? Number(match[0]) : 0;
+}
+
+function getTimestamp(value) {
+    const date = parseDashboardDate(value);
+    return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+}
+
+function getAgeDaysForSort(value) {
+    const age = calculateAgeDays(value);
+    return Number.isFinite(age) ? age : -1;
+}
+
+function sortOperationalRecords(records) {
+    return [...records].sort((a, b) => {
+        const statusDiff = getOperationalStatusRank(a.estado) - getOperationalStatusRank(b.estado);
+        if (statusDiff !== 0) return statusDiff;
+
+        const priorityDiff = getOperationalPriorityRank(b.prioridade) - getOperationalPriorityRank(a.prioridade);
+        if (priorityDiff !== 0) return priorityDiff;
+
+        const ageDiff = getAgeDaysForSort(b.datacriacao) - getAgeDaysForSort(a.datacriacao);
+        if (ageDiff !== 0) return ageDiff;
+
+        const modifiedDiff = getTimestamp(b.datamodificacao) - getTimestamp(a.datamodificacao);
+        if (modifiedDiff !== 0) return modifiedDiff;
+
+        return getTimestamp(b.datacriacao) - getTimestamp(a.datacriacao);
+    });
+}
+
 function buildKpis(records) {
     if (!allRecords.length) return data.kpis;
 
@@ -289,35 +332,35 @@ function renderProgress(records, kpis) {
 
 function applyFilters() {
     const nivel = document.getElementById("filter-nivel")?.value || "";
-    const gerencia = document.getElementById("filter-gerencia")?.value || "";
+    const tipo = document.getElementById("filter-tipo")?.value || "";
     const executor = document.getElementById("filter-executor")?.value || "";
     const status = document.getElementById("filter-status")?.value || "";
     const titulo = (document.getElementById("filter-titulo")?.value || "").toLowerCase();
 
     filteredRecords = allRecords.filter((item) => {
         const matchNivel = !nivel || item.fila === nivel;
-        const matchGerencia = !gerencia || item.gerencia === gerencia;
+        const matchTipo = !tipo || item.tipo === tipo;
         const matchExecutor = !executor || item.proprietarionome === executor;
         const matchStatus = !status || item.estado === status;
         const matchTitulo = !titulo || String(item.titulo || "").toLowerCase().includes(titulo);
 
-        return matchNivel && matchGerencia && matchExecutor && matchStatus && matchTitulo;
+        return matchNivel && matchTipo && matchExecutor && matchStatus && matchTitulo;
     });
 
     renderDashboard(filteredRecords);
 }
 
 fillSelect("filter-nivel", data.filters?.niveis || [], "Todos os níveis");
-fillSelect("filter-gerencia", data.filters?.gerencias || [], "Todas");
+fillSelect("filter-tipo", data.filters?.tipos || [], "Todos os tipos");
 fillSelect("filter-executor", data.filters?.executores || [], "Todos");
 fillSelect("filter-status", data.filters?.status || [], "Todos os status");
 
-["filter-nivel", "filter-gerencia", "filter-executor", "filter-status", "filter-titulo"].forEach((id) => {
+["filter-nivel", "filter-tipo", "filter-executor", "filter-status", "filter-titulo"].forEach((id) => {
     document.getElementById(id)?.addEventListener("input", applyFilters);
 });
 
 document.getElementById("clear-filters")?.addEventListener("click", () => {
-    ["filter-nivel", "filter-gerencia", "filter-executor", "filter-status", "filter-titulo"].forEach((id) => {
+    ["filter-nivel", "filter-tipo", "filter-executor", "filter-status", "filter-titulo"].forEach((id) => {
         const element = document.getElementById(id);
         if (element) element.value = "";
     });
@@ -376,17 +419,23 @@ function chartBaseOptions() {
     };
 }
 
-function horizontalOptions() {
+function horizontalOptions(options = {}) {
     const colors = getThemeColors();
     const base = chartBaseOptions();
+    const labelWidth = options.labelWidth || 140;
+    const barPercentage = options.barPercentage || 0.6;
+    const categoryPercentage = options.categoryPercentage || 1.0;
+    const labelPadding = options.labelPadding ?? 6;
+    const labelCrossAlign = options.labelCrossAlign || "center";
+    const forceLabelWidth = options.forceLabelWidth || false;
 
     return {
         ...base,
         indexAxis: "y",
         layout: { padding: { right: 40 } },
 
-        barPercentage: 0.6,       // Deixa as barras mais finas (o padrão é 0.9)
-        categoryPercentage: 1.0,  // Aumenta a distância entre uma barra e outra
+        barPercentage: barPercentage,
+        categoryPercentage: categoryPercentage,
 
         scales: {
             x: {
@@ -395,8 +444,13 @@ function horizontalOptions() {
             },
             y: {
                 afterFit: function(scaleInstance) {
-                    if (scaleInstance.width < 140) {
-                        scaleInstance.width = 140;
+                    if (forceLabelWidth) {
+                        scaleInstance.width = labelWidth;
+                        return;
+                    }
+
+                    if (scaleInstance.width < labelWidth) {
+                        scaleInstance.width = labelWidth;
                     }
                 },
                 ticks: {
@@ -406,7 +460,8 @@ function horizontalOptions() {
                         size: 11,
                         lineHeight: 1.4
                     },
-                    padding: 6, // <-- AFASTA O TEXTO DAS BARRAS HORIZONTALMENTE
+                    padding: labelPadding,
+                    crossAlign: labelCrossAlign,
                     autoSkip: false,
                     callback: function(value) {
                         const label = this.getLabelForValue(value) || '';
@@ -555,6 +610,53 @@ function buildCharts(records) {
     };
 }
 
+function getNiceAxisMax(values) {
+    const maxValue = Math.max(0, ...values);
+    if (maxValue <= 0) return 100;
+
+    const step = maxValue <= 100 ? 50 : 100;
+    return Math.ceil(maxValue / step) * step;
+}
+
+function renderAnalystsChart(analistas) {
+    const chart = document.getElementById("chartAnalistas");
+    if (!chart) return;
+
+    if (!analistas.labels.length) {
+        chart.innerHTML = `<div class="table-empty">Nenhum analista encontrado para os filtros selecionados.</div>`;
+        return;
+    }
+
+    const axisMax = getNiceAxisMax(analistas.values);
+    const ticks = [0, axisMax / 3, axisMax * 2 / 3, axisMax].map((value) => Math.round(value));
+    const rows = analistas.labels.map((label, index) => {
+        const value = analistas.values[index] || 0;
+        const width = Math.min(100, percentualJS(value, axisMax));
+
+        return `
+            <div class="analysts-row">
+                <div class="analysts-name">${escapeHTML(label)}</div>
+                <div class="analysts-plot">
+                    <div class="analysts-bar" style="width: ${width}%">
+                        <span class="analysts-value">${escapeHTML(value)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join("");
+
+    chart.innerHTML = `
+        <div class="analysts-chart-body">${rows}</div>
+        <div class="analysts-axis">
+            <span></span>
+            <div class="analysts-axis-ticks">
+                ${ticks.map((tick) => `<span>${escapeHTML(tick)}</span>`).join("")}
+            </div>
+        </div>
+        <div class="analysts-legend">Atendimentos</div>
+    `;
+}
+
 function renderCharts(records = filteredRecords) {
     if (!window.Chart || !hasInjectedData) {
         return;
@@ -597,11 +699,7 @@ function renderCharts(records = filteredRecords) {
         options: horizontalOptions()
     }));
 
-    chartInstances.push(new Chart(document.getElementById("chartAnalistas"), {
-        type: "bar",
-        data: { labels: charts.analistas.labels, datasets: [{ label: "Atendimentos", data: charts.analistas.values, backgroundColor: "#8b5cf6", borderRadius: 8 }] },
-        options: horizontalOptions()
-    }));
+    renderAnalystsChart(charts.analistas);
 }
 
 function renderServicesTable(records) {
@@ -652,7 +750,8 @@ function renderOperationalTable(records) {
         return;
     }
 
-    const rows = records.map((item) => `
+    const prioritizedRecords = sortOperationalRecords(records);
+    const rows = prioritizedRecords.map((item) => `
         <tr>
             <td>${escapeHTML(item.numerochamado || "Não informado")}</td>
             <td class="title-cell">${escapeHTML(item.titulo || "Não informado")}</td>

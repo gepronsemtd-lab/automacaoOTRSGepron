@@ -153,7 +153,7 @@ def preparar_dashboard_data(df, agora_local, ano_atual, periodo_referencia):
     dashboard_data["records"] = records
     dashboard_data["filters"] = {
         "niveis": sorted(df["fila"].dropna().unique().tolist()) if "fila" in df.columns else [],
-        "gerencias": sorted(df["gerencia"].dropna().unique().tolist()) if "gerencia" in df.columns else [],
+        "tipos": sorted(df["tipo"].dropna().unique().tolist()) if "tipo" in df.columns else [],
         "executores": sorted(df["proprietarionome"].dropna().unique().tolist()) if "proprietarionome" in df.columns else [],
         "status": sorted(df["estado"].dropna().unique().tolist()) if "estado" in df.columns else [],
     }
