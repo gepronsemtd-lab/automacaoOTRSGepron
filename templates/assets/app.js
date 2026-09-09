@@ -35,6 +35,7 @@ const resultCount = document.getElementById("result-count");
 const operationsCount = document.getElementById("operations-count");
 const emptyState = document.getElementById("empty-state");
 const isStaticPagesHost = window.location.hostname.endsWith(".github.io");
+const workflowUrl = "https://github.com/gepronsemtd-lab/automacaoOTRSGepron/actions/workflows/main.yml";
 
 function refreshIcons() {
     if (window.lucide) {
@@ -88,7 +89,7 @@ updateThemeButton();
 
 syncButton?.addEventListener("click", async () => {
     if (isStaticPagesHost) {
-        alert("Este dashboard está publicado no GitHub Pages, que não executa a sincronização pelo botão. Para atualizar os dados, execute o workflow 'Atualizar Dashboard OTRS SESUITE' no GitHub Actions ou abra o dashboard pelo servidor Flask.");
+        window.open(workflowUrl, "_blank", "noopener,noreferrer");
         return;
     }
 
