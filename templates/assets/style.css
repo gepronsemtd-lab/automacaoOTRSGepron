@@ -453,7 +453,7 @@ i[data-lucide]::before {
 }
 
 .progress-panel {
-    grid-column: span 4;
+    grid-column: span 6;
 }
 
 .chart-wide {
@@ -492,6 +492,45 @@ i[data-lucide]::before {
 
 .chart-wide .canvas-wrapper {
     height: 380px;
+}
+
+.risk-panel {
+    gap: 14px;
+}
+
+.risk-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.risk-panel .panel-title {
+    color: var(--text);
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.risk-panel .panel-title svg {
+    color: var(--red);
+}
+
+.risk-pill {
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--red);
+    color: #ffffff;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.risk-chart-wrapper {
+    height: 300px;
 }
 
 .analysts-chart {
@@ -800,6 +839,18 @@ i[data-lucide]::before {
     .col-6,
     .col-12 {
         grid-column: span 12;
+    }
+}
+
+@media (max-width: 640px) {
+    .risk-panel-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .risk-pill {
+        white-space: normal;
+        line-height: 1.25;
     }
 }
 

@@ -127,17 +127,25 @@
                     <div class="canvas-wrapper"><canvas id="chartEstados"></canvas></div>
                 </article>
 
-                <article class="panel-card progress-panel col-4">
+                <article class="panel-card progress-panel col-6">
                     <div class="panel-title"><i data-lucide="rocket" data-fallback=""></i><span>Distribuição por Nível</span></div>
                     <div id="progress-container"></div>
                 </article>
 
-                <article class="panel-card col-4">
+                <article class="panel-card risk-panel col-6">
+                    <div class="risk-panel-header">
+                        <div class="panel-title"><i data-lucide="octagon-alert" data-fallback="!"></i><span>Riscos e Atrasos</span></div>
+                        <span class="risk-pill" id="risk-worst-case">Pior caso: 0 dias de atraso</span>
+                    </div>
+                    <div class="canvas-wrapper risk-chart-wrapper"><canvas id="chartRiscos"></canvas></div>
+                </article>
+
+                <article class="panel-card col-6">
                     <div class="panel-title"><i data-lucide="users" data-fallback=""></i><span>Top 10 Analistas</span></div>
                     <div class="analysts-chart" id="chartAnalistas"></div>
                 </article>
 
-                <article class="panel-card col-4">
+                <article class="panel-card col-6">
                     <div class="panel-title"><i data-lucide="briefcase-business" data-fallback=""></i><span>Top 10 Serviços</span></div>
                     <div class="table-wrapper" id="tableServicos"></div>
                 </article>
