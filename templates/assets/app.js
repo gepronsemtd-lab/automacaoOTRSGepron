@@ -34,6 +34,7 @@ const filterToggle = document.getElementById("filter-toggle");
 const resultCount = document.getElementById("result-count");
 const operationsCount = document.getElementById("operations-count");
 const emptyState = document.getElementById("empty-state");
+const isStaticPagesHost = window.location.hostname.endsWith(".github.io");
 
 function refreshIcons() {
     if (window.lucide) {
@@ -86,15 +87,29 @@ if (savedTheme) {
 updateThemeButton();
 
 syncButton?.addEventListener("click", async () => {
+    if (isStaticPagesHost) {
+        alert("Este dashboard está publicado no GitHub Pages, que não executa a sincronização pelo botão. Para atualizar os dados, execute o workflow 'Atualizar Dashboard OTRS SESUITE' no GitHub Actions ou abra o dashboard pelo servidor Flask.");
+        return;
+    }
+
     syncButton.disabled = true;
     syncButton.querySelector("span").innerText = "Sincronizando...";
 
     try {
         const response = await fetch("/sync", { method: "POST" });
-        if (!response.ok) throw new Error("Falha na sincronização");
+        if (!response.ok) {
+            let message = "Falha na sincronização";
+            try {
+                const payload = await response.json();
+                message = payload.error || message;
+            } catch (error) {
+                // Mantém a mensagem padrão quando a resposta não é JSON.
+            }
+            throw new Error(message);
+        }
         window.location.reload();
     } catch (error) {
-        alert("Não foi possível sincronizar agora.");
+        alert(`Não foi possível sincronizar agora. ${error.message}`);
     } finally {
         syncButton.disabled = false;
         syncButton.querySelector("span").innerText = "Sincronizar";

@@ -7,7 +7,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-app = Flask(__name__, static_folder="dist")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DIST_DIR = os.path.join(BASE_DIR, "dist")
+DIST_ASSETS_DIR = os.path.join(DIST_DIR, "assets")
+MAIN_SCRIPT = os.path.join(BASE_DIR, "main.py")
+
+app = Flask(__name__, static_folder=DIST_DIR)
 app.secret_key = os.getenv("DASHBOARD_SECRET_KEY")
 
 DASHBOARD_PORT = 5001
@@ -57,24 +62,24 @@ def sync():
         return jsonify({"error": "Não autorizado"}), 401
 
     try:
-        subprocess.run([sys.executable, "main.py"], check=True)
+        subprocess.run([sys.executable, MAIN_SCRIPT], cwd=BASE_DIR, check=True)
         return jsonify({"ok": True})
-    except subprocess.CalledProcessError:
-        return jsonify({"error": "Falha ao gerar dashboard"}), 500
+    except subprocess.CalledProcessError as error:
+        return jsonify({"error": "Falha ao gerar dashboard", "details": str(error)}), 500
 
 @app.route("/")
 def index():
     if not autenticado():
         return redirect("/login")
 
-    return send_from_directory("dist", "index.html")
+    return send_from_directory(DIST_DIR, "index.html")
 
 @app.route("/assets/<path:path>")
 def assets(path):
     if not autenticado():
         return redirect("/login")
 
-    return send_from_directory("dist/assets", path)
+    return send_from_directory(DIST_ASSETS_DIR, path)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=DASHBOARD_PORT)
