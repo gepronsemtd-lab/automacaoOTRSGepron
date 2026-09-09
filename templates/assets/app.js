@@ -9,6 +9,7 @@ const EMPTY_DASHBOARD_DATA = {
         estados: { labels: [], values: [] },
         analistas: { labels: [], values: [] },
         servicos: { labels: [], values: [] },
+        riscos: { labels: [], values: [], worstCase: 0 },
         timeline: { labels: [], total: [], n1: [], n2: [], n3: [] },
     },
     records: [],
@@ -262,6 +263,23 @@ function getTimestamp(value) {
 function getAgeDaysForSort(value) {
     const age = calculateAgeDays(value);
     return Number.isFinite(age) ? age : -1;
+}
+
+function buildRiskChart(records) {
+    const ranges = [
+        { label: "1 a 7 dias", min: 1, max: 7 },
+        { label: "8 a 15 dias", min: 8, max: 15 },
+        { label: "+15 dias (Crítico)", min: 16, max: Infinity },
+    ];
+    const ages = records
+        .map((item) => calculateAgeDays(item.datacriacao))
+        .filter((age) => Number.isFinite(age));
+
+    return {
+        labels: ranges.map((range) => range.label),
+        values: ranges.map((range) => ages.filter((age) => age >= range.min && age <= range.max).length),
+        worstCase: ages.length ? Math.max(...ages) : 0,
+    };
 }
 
 function sortOperationalRecords(records) {
@@ -567,6 +585,51 @@ function verticalOptions() {
     };
 }
 
+function riskOptions() {
+    const colors = getThemeColors();
+    const base = chartBaseOptions();
+
+    return {
+        ...base,
+        maintainAspectRatio: false,
+        layout: { padding: { left: 8, right: 10, top: 22, bottom: 0 } },
+        barPercentage: 0.55,
+        categoryPercentage: 0.85,
+        scales: {
+            x: {
+                ticks: {
+                    color: colors.text,
+                    font: { family: "Inter", size: 11 },
+                    maxRotation: 0,
+                    minRotation: 0,
+                    autoSkip: false,
+                },
+                grid: { display: false },
+            },
+            y: {
+                beginAtZero: true,
+                ticks: { color: colors.text, font: { family: "Inter", size: 11 }, precision: 0 },
+                grid: { color: colors.grid },
+            },
+        },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: (context) => `${context.parsed.y} chamados`,
+                },
+            },
+            datalabels: {
+                color: colors.label,
+                font: { weight: "bold", size: 11 },
+                anchor: "end",
+                align: "top",
+                formatter: (value) => value,
+            },
+        },
+    };
+}
+
 // --- NOVA CONFIGURAÇÃO PARA AS ROSCAS NÃO CORTAREM ---
 function doughnutOptions() {
     const base = chartBaseOptions();
@@ -622,6 +685,7 @@ function buildCharts(records) {
         estados: chartFromCounts(records, "estado"),
         analistas: chartFromCounts(records, "proprietarionome", 10),
         servicos: chartFromCounts(records, "servico", 10),
+        riscos: buildRiskChart(records),
         timeline: buildTimeline(records),
     };
 }
@@ -713,6 +777,25 @@ function renderCharts(records = filteredRecords) {
         type: "bar",
         data: { labels: charts.estados.labels, datasets: [{ label: "Qtd", data: charts.estados.values, backgroundColor: ["#4ade80", "#1677ff", "#ffbd45"], borderRadius: 8 }] },
         options: horizontalOptions()
+    }));
+
+    const riskWorstCase = document.getElementById("risk-worst-case");
+    if (riskWorstCase) {
+        riskWorstCase.innerText = `Pior caso: ${charts.riscos.worstCase} dias de atraso`;
+    }
+
+    chartInstances.push(new Chart(document.getElementById("chartRiscos"), {
+        type: "bar",
+        data: {
+            labels: charts.riscos.labels,
+            datasets: [{
+                label: "Qtd",
+                data: charts.riscos.values,
+                backgroundColor: ["#ffb800", "#ffb800", "#e6374d"],
+                borderRadius: 4,
+            }],
+        },
+        options: riskOptions(),
     }));
 
     renderAnalystsChart(charts.analistas);
