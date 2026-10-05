@@ -301,7 +301,7 @@ i[data-lucide]::before {
 
 .filter-grid {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr)) 120px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
     align-items: end;
     padding-top: 18px;
@@ -900,4 +900,38 @@ i[data-lucide]::before {
     .canvas-wrapper {
         height: 480px;
     }
+}
+
+/* Preserve o espaço de cada mês sem alargar a página. */
+.chart-wide {
+    min-width: 0;
+}
+
+.timeline-scroll {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-bottom: 8px;
+}
+
+.timeline-scroll:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.timeline-canvas {
+    min-width: max(100%, var(--timeline-min-width, 0px));
+}
+
+.filter-grid[hidden],
+.filter-grid [hidden] {
+    display: none;
+}
+
+.period-error {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--text);
+    font-size: 13px;
 }

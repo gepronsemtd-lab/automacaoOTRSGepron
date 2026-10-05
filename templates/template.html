@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     
     <!-- CSS -->
-    <link rel="stylesheet" href="assets/style.css?v=20260908-analysts-typography">
+    <link rel="stylesheet" href="assets/style.css?v=20261005-periodo-mobile">
 </head>
 <body>
 <header class="topbar">
@@ -84,6 +84,27 @@
                         <select id="filter-status"></select>
                     </span>
                 </label>
+                <label>
+                    Período de criação
+                    <span class="select-wrapper">
+                        <select id="filter-periodo">
+                            <option value="">Todo o período</option>
+                            <option value="3">Últimos 3 meses</option>
+                            <option value="6">Últimos 6 meses</option>
+                            <option value="12">Últimos 12 meses</option>
+                            <option value="custom">Período específico</option>
+                        </select>
+                    </span>
+                </label>
+                <label id="period-start-field" hidden>
+                    Data inicial
+                    <input id="filter-data-inicial" type="date" aria-describedby="period-error">
+                </label>
+                <label id="period-end-field" hidden>
+                    Data final
+                    <input id="filter-data-final" type="date" aria-describedby="period-error">
+                </label>
+                <p id="period-error" class="period-error" role="alert" hidden></p>
                 <button class="clear-button" id="clear-filters" type="button">Limpar</button>
             </div>
         </section>
@@ -107,7 +128,9 @@
             <section class="overview-grid">
                 <article class="panel-card chart-wide">
                     <div class="panel-title"><i data-lucide="activity" data-fallback=""></i><span>Evolução Mensal</span></div>
-                    <div class="canvas-wrapper"><canvas id="chartTimeline"></canvas></div>
+                    <div class="timeline-scroll" tabindex="0" role="region" aria-label="Evolução mensal, com rolagem horizontal quando necessário">
+                        <div class="canvas-wrapper timeline-canvas"><canvas id="chartTimeline"></canvas></div>
+                    </div>
                 </article>
             </section>
 
@@ -167,6 +190,6 @@
     <script>
         window.DASHBOARD_DATA = "DATA_PLACEHOLDER";
     </script>
-    <script defer src="assets/app.js?v=20260908-analysts-typography"></script>
+    <script defer src="assets/app.js?v=20261005-periodo-mobile"></script>
 </body>
 </html>
