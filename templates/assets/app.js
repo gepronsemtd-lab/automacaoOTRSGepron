@@ -364,12 +364,43 @@ function renderProgress(records, kpis) {
         .join("");
 }
 
+// Os atalhos incluem o mês atual, usando o calendário local do usuário.
+function getPeriodBounds(now = new Date()) {
+    const period = document.getElementById("filter-periodo")?.value || "";
+    if (period === "custom") {
+        return {
+            start: document.getElementById("filter-data-inicial")?.value || "",
+            end: document.getElementById("filter-data-final")?.value || "",
+        };
+    }
+    if (!["3", "6", "12"].includes(period)) return { start: "", end: "" };
+
+    const start = new Date(now.getFullYear(), now.getMonth() - Number(period) + 1, 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const dateKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    return { start: dateKey(start), end: dateKey(end) };
+}
+
+function updatePeriodFields() {
+    const custom = document.getElementById("filter-periodo")?.value === "custom";
+    document.getElementById("period-start-field").hidden = !custom;
+    document.getElementById("period-end-field").hidden = !custom;
+}
+
 function applyFilters() {
     const nivel = document.getElementById("filter-nivel")?.value || "";
     const tipo = document.getElementById("filter-tipo")?.value || "";
     const executor = document.getElementById("filter-executor")?.value || "";
     const status = document.getElementById("filter-status")?.value || "";
     const titulo = (document.getElementById("filter-titulo")?.value || "").toLowerCase();
+
+    const { start, end } = getPeriodBounds();
+    const invalidRange = Boolean(start && end && start > end);
+    const periodError = document.getElementById("period-error");
+    periodError.hidden = !invalidRange;
+    periodError.textContent = invalidRange ? "A data final deve ser igual ou posterior à data inicial." : "";
+    document.getElementById("filter-data-final").setAttribute("aria-invalid", String(invalidRange));
+    if (invalidRange) return;
 
     filteredRecords = allRecords.filter((item) => {
         const matchNivel = !nivel || item.fila === nivel;
@@ -378,7 +409,13 @@ function applyFilters() {
         const matchStatus = !status || item.estado === status;
         const matchTitulo = !titulo || String(item.titulo || "").toLowerCase().includes(titulo);
 
-        return matchNivel && matchTipo && matchExecutor && matchStatus && matchTitulo;
+        const creationDate = String(item.datacriacao || "").slice(0, 10);
+        const matchPeriod = (!start && !end) || (
+            /^\d{4}-\d{2}-\d{2}$/.test(creationDate)
+            && (!start || creationDate >= start)
+            && (!end || creationDate <= end)
+        );
+        return matchNivel && matchTipo && matchExecutor && matchStatus && matchTitulo && matchPeriod;
     });
 
     renderDashboard(filteredRecords);
@@ -389,15 +426,19 @@ fillSelect("filter-tipo", data.filters?.tipos || [], "Todos os tipos");
 fillSelect("filter-executor", data.filters?.executores || [], "Todos");
 fillSelect("filter-status", data.filters?.status || [], "Todos os status");
 
-["filter-nivel", "filter-tipo", "filter-executor", "filter-status", "filter-titulo"].forEach((id) => {
-    document.getElementById(id)?.addEventListener("input", applyFilters);
+["filter-nivel", "filter-tipo", "filter-executor", "filter-status", "filter-titulo", "filter-periodo", "filter-data-inicial", "filter-data-final"].forEach((id) => {
+    document.getElementById(id)?.addEventListener("input", () => {
+        updatePeriodFields();
+        applyFilters();
+    });
 });
 
 document.getElementById("clear-filters")?.addEventListener("click", () => {
-    ["filter-nivel", "filter-tipo", "filter-executor", "filter-status", "filter-titulo"].forEach((id) => {
+    ["filter-nivel", "filter-tipo", "filter-executor", "filter-status", "filter-titulo", "filter-periodo", "filter-data-inicial", "filter-data-final"].forEach((id) => {
         const element = document.getElementById(id);
         if (element) element.value = "";
     });
+    updatePeriodFields();
     applyFilters();
 });
 
@@ -653,10 +694,25 @@ function buildTimeline(records) {
     if (!allRecords.length) return data.charts.timeline;
 
     const monthFormatter = new Intl.DateTimeFormat("pt-BR", { month: "short", year: "numeric" });
-    const monthKeys = [...new Set(records
+    let monthKeys = [...new Set(records
         .map((item) => String(item.datacriacao || "").slice(0, 7))
         .filter((value) => /^\d{4}-\d{2}$/.test(value))
     )].sort();
+
+    const { start, end } = getPeriodBounds();
+    const firstMonth = start.slice(0, 7) || monthKeys[0];
+    const lastMonth = end.slice(0, 7) || monthKeys[monthKeys.length - 1];
+    if (firstMonth && lastMonth && firstMonth <= lastMonth) {
+        monthKeys = [];
+        const [year, month] = firstMonth.split("-").map(Number);
+        const cursor = new Date(year, month - 1, 1);
+        let key = firstMonth;
+        while (key <= lastMonth) {
+            monthKeys.push(key);
+            cursor.setMonth(cursor.getMonth() + 1);
+            key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
+        }
+    }
 
     const countMonth = (fila = null) => monthKeys.map((month) => records.filter((item) => {
         const matchMonth = String(item.datacriacao || "").startsWith(month);
@@ -747,6 +803,17 @@ function renderCharts(records = filteredRecords) {
     chartInstances.forEach((chart) => chart.destroy());
     chartInstances = [];
 
+    const timelineCanvas = document.querySelector(".timeline-canvas");
+    timelineCanvas?.style.setProperty("--timeline-min-width", `${charts.timeline.labels.length * 78 + 70}px`);
+    const timelineOptions = chartBaseOptions();
+    timelineOptions.scales.x.ticks = {
+        ...timelineOptions.scales.x.ticks,
+        autoSkip: false,
+        maxRotation: 0,
+        minRotation: 0,
+    };
+    timelineOptions.scales.y.beginAtZero = true;
+
     chartInstances.push(new Chart(document.getElementById("chartTimeline"), {
         type: "line",
         data: {
@@ -758,7 +825,7 @@ function renderCharts(records = filteredRecords) {
                 { label: "N3", data: charts.timeline.n3, borderColor: "#e6374d", backgroundColor: "#e6374d", tension: 0.2 }
             ]
         },
-        options: chartBaseOptions()
+        options: timelineOptions
     }));
 
     chartInstances.push(new Chart(document.getElementById("chartTipos"), {
